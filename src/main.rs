@@ -1,16 +1,16 @@
-use markdown::to_html;
-use markdown_parser::{parse_format, Format};
-use std::fs;
-use yaml_rust::{YamlLoader};
+use markdown_storage::parse_markdown;
+use actix_web::{get, web, App, HttpServer, Responder};
 
-fn main() {
-    let content = fs::read_to_string("./assets/test.md").unwrap();
-    let md = parse_format(&content, Format::YAML).unwrap();
-    // 取到了metadata和md正文
-    let markdown_source = md.content();
-    let metadata = md.front_matter();
-    let html = to_html(markdown_source);
-    println!("\nhtml:\n{}", html);
-    let data = YamlLoader::load_from_str(metadata).unwrap();
-    println!("\ndata:\n{:?}", data);
+#[get("/{id}/{name}/index.html")]
+async fn index(web::Path((id, name)): web::Path<(u32, String)>) -> impl Responder {
+    parse_markdown();
+    format!("Hello {}! id:{}", name, id)
+}
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    HttpServer::new(|| App::new().service(index))
+        .bind("127.0.0.1:8080")?
+        .run()
+        .await
 }

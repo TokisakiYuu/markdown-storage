@@ -1,16 +1,15 @@
-use markdown_storage::parse_markdown;
-use actix_web::{get, web, App, HttpServer, Responder};
-
-#[get("/{id}/{name}/index.html")]
-async fn index(web::Path((id, name)): web::Path<(u32, String)>) -> impl Responder {
-    parse_markdown();
-    format!("Hello {}! id:{}", name, id)
-}
+use actix_web::{App, HttpServer, middleware};
+mod routes;
+use routes::web_ui;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| App::new().service(index))
-        .bind("127.0.0.1:8080")?
-        .run()
-        .await
+    HttpServer::new(|| {
+        App::new()
+            .wrap(middleware::Compress::default())
+            .service(web_ui)
+    })
+    .bind("127.0.0.1:8080")?
+    .run()
+    .await
 }

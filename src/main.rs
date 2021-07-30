@@ -1,15 +1,28 @@
-use actix_web::{App, HttpServer, middleware};
-mod routes;
-use routes::web_ui;
+mod lib;
+use jsonrpc_http_server::*;
+use jsonrpc_http_server::jsonrpc_core::*;
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
-        App::new()
-            .wrap(middleware::Compress::default())
-            .service(web_ui)
-    })
-    .bind("127.0.0.1:8080")?
-    .run()
-    .await
+fn main() {
+	let mut io = IoHandler::default();
+	io.add_sync_method("say_hello", |_| {
+        lib::parse_markdown();
+		Ok(Value::String("hello".into()))
+	});
+
+    io.add_sync_method("save", |params| {
+        if let Params::Map(map) = params {
+            println!("{:?}", map);
+            Ok(Value::Bool(true))
+        } else {
+            Ok(Value::Bool(false))
+        }
+    });
+
+
+	let server = ServerBuilder::new(io)
+		.cors(DomainsValidation::AllowOnly(vec![AccessControlAllowOrigin::Null]))
+		.start_http(&"127.0.0.1:3030".parse().unwrap())
+		.expect("Unable to start RPC server");
+
+	server.wait();
 }

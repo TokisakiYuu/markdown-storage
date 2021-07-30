@@ -1,4 +1,4 @@
-use markdown::to_html;
+use markdown::{to_html, generate_markdown};
 use markdown_parser::{parse_format, Format};
 use std::fs;
 use yaml_rust::{YamlLoader};

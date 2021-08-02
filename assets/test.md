@@ -1,11 +1,12 @@
 ---
-date: 2020-01-02
-title: it is yaml
-categories:
-  - rust
+shortcut: hello world
 tags:
-  - front-matter
-  - md
+  - study
+  - work
+  - life
+topic: huacai
+createAt: 2021-07-21
+updateAt: 2021-07-21
 ---
 
 ## Header

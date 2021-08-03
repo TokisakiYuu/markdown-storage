@@ -1,41 +1,86 @@
 // mod lib;
 mod db;
+mod types;
 use db::MDDB;
-use std::fs;
-// use jsonrpc_http_server::*;
-// use jsonrpc_http_server::jsonrpc_core::*;
-// use jsonrpc_http_server::jsonrpc_core::serde_json::json;
+use jsonrpc_http_server::*;
+use jsonrpc_http_server::jsonrpc_core::*;
+use jsonrpc_http_server::jsonrpc_core::serde_json::json;
 
 fn main() {
-    let content = fs::read_to_string("./assets/test.md").unwrap();
+	let mut io = IoHandler::default();
+	io.add_sync_method("get", move |params| {
+        if let Params::Map(map) = params {
+            match map.get("hash") {
+                Some(hash) => {
+                    let db = MDDB::open();
+                    match db.get_markdown(hash.as_str().unwrap_or("")) {
+                        Some((meta_data, source)) => {
+                            Ok(json!({
+                                "ok": true,
+                                "meta_data": &meta_data,
+                                "content": source
+                            }))
+                        },
+                        None => {
+                            Ok(json!({
+                                "ok": false,
+                                "reason": "not found markdown"
+                            }))
+                        }
+                    }
+                },
+                None => {
+                    Ok(json!({
+                        "ok": false,
+                        "reason": "missing paramenter"
+                    }))
+                }
+            }
+        } else {
+            Ok(json!({
+                "ok": false,
+                "reason": "paramenter error"
+            }))
+        }
+	});
 
-    let db = MDDB::open();
-    db.save_markdown(content);
+    io.add_sync_method("save", move |params| {
+        if let Params::Map(map) = params {
+            match map.get("content") {
+                Some(content) => {
+                    if let Some(content) = content.as_str() {
+                        let db = MDDB::open();
+                        let hash = db.save_markdown(content.to_owned());
+                        Ok(json!({
+                            "ok": true,
+                            "hash": hash
+                        }))
+                    } else {
+                        Ok(json!({
+                            "ok": false,
+                            "reason": "paramenter type error"
+                        }))
+                    }
+                },
+                None => {
+                    Ok(json!({
+                        "ok": false,
+                        "reason": "missing paramenter"
+                    }))
+                }
+            }
+        } else {
+            Ok(json!({
+                "ok": false
+            }))
+        }
+    });
 
-	// let mut io = IoHandler::default();
-	// io.add_sync_method("say_hello", |_| {
-    //     lib::parse_markdown();
-	// 	Ok(Value::String("hello".into()))
-	// });
 
-    // io.add_sync_method("save", |params| {
-    //     if let Params::Map(map) = params {
-    //         println!("{:?}", map);
-    //         Ok(json!({
-    //             "ok": true
-    //         }))
-    //     } else {
-    //         Ok(json!({
-    //             "ok": false
-    //         }))
-    //     }
-    // });
+	let server = ServerBuilder::new(io)
+		.cors(DomainsValidation::AllowOnly(vec![AccessControlAllowOrigin::Null]))
+		.start_http(&"127.0.0.1:3030".parse().unwrap())
+		.expect("Unable to start RPC server");
 
-
-	// let server = ServerBuilder::new(io)
-	// 	.cors(DomainsValidation::AllowOnly(vec![AccessControlAllowOrigin::Null]))
-	// 	.start_http(&"127.0.0.1:3030".parse().unwrap())
-	// 	.expect("Unable to start RPC server");
-
-	// server.wait();
+	server.wait();
 }

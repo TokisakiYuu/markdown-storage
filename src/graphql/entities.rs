@@ -6,19 +6,19 @@ use super::enums::ArticleContentType;
 #[derive(GraphQLObject)]
 #[graphql(description = "文章")]
 pub struct Article {
-  id: ID,
-  shorthand: String,
-  title: String,
-  content: String,
+  pub id: ID,
+  pub shorthand: String,
+  pub title: String,
+  pub content: String,
   #[graphql(name = "contentType")]
-  content_type: ArticleContentType,
-  tags: Option<Vec<String>>,
-  topic: Option<String>,
-  hidden: bool,
+  pub content_type: ArticleContentType,
+  pub tags: Option<Vec<String>>,
+  pub topic: Option<String>,
+  pub hidden: bool,
   #[graphql(name = "updateAt")]
-  update_at: String,
+  pub update_at: String,
   #[graphql(name = "createAt")]
-  create_at: String
+  pub create_at: String
 }
 
 #[derive(GraphQLObject)]
@@ -34,20 +34,21 @@ pub struct Tag {
 #[derive(GraphQLObject)]
 #[graphql(description = "主题")]
 pub struct Topic {
-  id: ID,
-  name: String,
-  description: String,
+  pub id: ID,
+  pub name: String,
+  pub description: String,
   #[graphql(name = "createAt")]
-  create_at: String
+  pub create_at: String
 }
 
-#[derive(GraphQLInputObject)]
+#[derive(GraphQLInputObject, Debug)]
+#[graphql(description = "新建文章的表单对象")]
 pub struct ArticleInput {
-  shorthand: String,
-  title: String,
-  content: String,
+  pub shorthand: String,
+  pub title: String,
+  pub content: String,
   #[graphql(name = "contentType", default = "ArticleContentType::MARKDOWN")]
-  content_type: ArticleContentType,
-  tags: Option<Vec<String>>,
-  topic: Option<String>
+  pub content_type: ArticleContentType,
+  pub tags: Option<Vec<String>>,
+  pub topic: Option<String>
 }
